@@ -1,11 +1,13 @@
 import asyncio
 from typing import AsyncGenerator, Generator
+from uuid import uuid4
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
@@ -17,7 +19,8 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 engine = create_async_engine(
     TEST_DATABASE_URL,
-    poolclass=NullPool,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
 
 TestingSessionLocal = async_sessionmaker(
@@ -27,15 +30,7 @@ TestingSessionLocal = async_sessionmaker(
 )
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> Generator:
-    """Create an event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """Create a database session for testing."""
     async with engine.begin() as conn:
@@ -69,10 +64,18 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 @pytest_asyncio.fixture
 async def test_user(db_session: AsyncSession) -> User:
     """Create a test user."""
+    from app.models.user import UserRole
+    from datetime import datetime, timezone
+
     user = User(
+        id=uuid4(),
         email="test@example.com",
         password_hash=get_password_hash("testpassword"),
         name="Test User",
+        role=UserRole.MEMBER,
+        is_active=True,
+        created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        updated_at=datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db_session.add(user)
     await db_session.commit()
@@ -90,10 +93,17 @@ async def auth_headers(test_user: User) -> dict[str, str]:
 @pytest_asyncio.fixture
 async def test_project(db_session: AsyncSession, test_user: User) -> Project:
     """Create a test project."""
+    from app.models.project import ProjectStatus
+    from datetime import datetime, timezone
+
     project = Project(
+        id=uuid4(),
         name="Test Project",
         description="A test project",
+        status=ProjectStatus.ACTIVE,
         created_by=test_user.id,
+        created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        updated_at=datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db_session.add(project)
     await db_session.commit()
