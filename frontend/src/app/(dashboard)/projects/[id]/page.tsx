@@ -22,13 +22,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { QuickTaskForm } from "@/components/kanban/quick-task-form";
+import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
 import { ProjectFormDialog } from "@/components/projects/project-form-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useProject, useUpdateProject, useDeleteProject } from "@/hooks/use-projects";
 import {
   useProjectTasks,
   useCreateTask,
+  useUpdateTask,
   useUpdateTaskStatus,
+  useDeleteTask,
 } from "@/hooks/use-tasks";
 import { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { ProjectStatus } from "@/types/project";
@@ -49,12 +52,16 @@ export default function ProjectDetailPage() {
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [deleteTaskOpen, setDeleteTaskOpen] = useState(false);
 
   const { data: project, isLoading: projectLoading } = useProject(projectId);
   const { data: tasks = [], isLoading: tasksLoading } = useProjectTasks(projectId);
 
   const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
   const updateTaskStatus = useUpdateTaskStatus();
+  const deleteTask = useDeleteTask();
   const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
 
@@ -88,7 +95,52 @@ export default function ProjectDetailPage() {
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
-    // Will open task detail modal in next commit
+    setTaskDetailOpen(true);
+  };
+
+  const handleUpdateTask = (data: {
+    title?: string;
+    description?: string;
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    due_date?: string;
+    estimated_hours?: number;
+  }) => {
+    if (!selectedTask) return;
+    updateTask.mutate(
+      {
+        taskId: selectedTask.id,
+        projectId,
+        data,
+      },
+      {
+        onSuccess: () => {
+          setTaskDetailOpen(false);
+          setSelectedTask(null);
+        },
+      }
+    );
+  };
+
+  const handleDeleteTaskClick = () => {
+    setTaskDetailOpen(false);
+    setDeleteTaskOpen(true);
+  };
+
+  const handleDeleteTask = () => {
+    if (!selectedTask) return;
+    deleteTask.mutate(
+      {
+        taskId: selectedTask.id,
+        projectId,
+      },
+      {
+        onSuccess: () => {
+          setDeleteTaskOpen(false);
+          setSelectedTask(null);
+        },
+      }
+    );
   };
 
   const handleUpdateProject = (data: {
@@ -247,7 +299,7 @@ export default function ProjectDetailPage() {
         isLoading={updateProject.isPending}
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Project Confirmation */}
       <ConfirmDialog
         open={deleteProjectOpen}
         onOpenChange={setDeleteProjectOpen}
@@ -256,6 +308,34 @@ export default function ProjectDetailPage() {
         confirmText="Excluir"
         onConfirm={handleDeleteProject}
         isLoading={deleteProject.isPending}
+        variant="destructive"
+      />
+
+      {/* Task Detail Modal */}
+      <TaskDetailModal
+        open={taskDetailOpen}
+        onOpenChange={(open) => {
+          setTaskDetailOpen(open);
+          if (!open) setSelectedTask(null);
+        }}
+        task={selectedTask}
+        onUpdate={handleUpdateTask}
+        onDelete={handleDeleteTaskClick}
+        isUpdating={updateTask.isPending}
+      />
+
+      {/* Delete Task Confirmation */}
+      <ConfirmDialog
+        open={deleteTaskOpen}
+        onOpenChange={(open) => {
+          setDeleteTaskOpen(open);
+          if (!open) setSelectedTask(null);
+        }}
+        title="Excluir Tarefa"
+        description={`Tem certeza que deseja excluir a tarefa "${selectedTask?.title}"? Esta ação não pode ser desfeita.`}
+        confirmText="Excluir"
+        onConfirm={handleDeleteTask}
+        isLoading={deleteTask.isPending}
         variant="destructive"
       />
     </div>
