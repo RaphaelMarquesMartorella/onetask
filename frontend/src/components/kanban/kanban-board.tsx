@@ -8,6 +8,7 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   closestCorners,
@@ -42,6 +43,12 @@ export function KanbanBoard({
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
       },
     })
   );
@@ -94,34 +101,48 @@ export function KanbanBoard({
     }
   };
 
+  const totalTasks = tasks.length;
+
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            id={column.id}
-            title={column.title}
-            tasks={getTasksByStatus(column.id)}
-            onTaskClick={onTaskClick}
-            onAddTask={column.id === "todo" ? onAddTask : undefined}
-          />
-        ))}
+    <div className="space-y-3">
+      {/* Mobile scroll hint */}
+      <div className="flex items-center justify-between lg:hidden">
+        <p className="text-xs text-slate-500">
+          Deslize para ver todas as colunas
+        </p>
+        <p className="text-xs text-slate-400">
+          {totalTasks} tarefa{totalTasks !== 1 ? "s" : ""}
+        </p>
       </div>
 
-      <DragOverlay>
-        {activeTask && (
-          <div className="rotate-3">
-            <TaskCard task={activeTask} />
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory lg:snap-none">
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              tasks={getTasksByStatus(column.id)}
+              onTaskClick={onTaskClick}
+              onAddTask={column.id === "todo" ? onAddTask : undefined}
+            />
+          ))}
+        </div>
+
+        <DragOverlay>
+          {activeTask && (
+            <div className="rotate-3">
+              <TaskCard task={activeTask} />
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }
