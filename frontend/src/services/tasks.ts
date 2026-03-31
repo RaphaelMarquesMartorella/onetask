@@ -8,22 +8,24 @@ import {
 
 export const tasksService = {
   getByProject: async (projectId: string): Promise<Task[]> => {
-    const response = await api.get<Task[]>(`/projects/${projectId}/tasks`);
+    const response = await api.get<Task[]>("/api/tasks", {
+      params: { project_id: projectId },
+    });
     return response.data;
   },
 
   getById: async (taskId: string): Promise<Task> => {
-    const response = await api.get<Task>(`/tasks/${taskId}`);
+    const response = await api.get<Task>(`/api/tasks/${taskId}`);
     return response.data;
   },
 
   create: async (data: CreateTaskRequest): Promise<Task> => {
-    const response = await api.post<Task>("/tasks", data);
+    const response = await api.post<Task>("/api/tasks", data);
     return response.data;
   },
 
   update: async (taskId: string, data: UpdateTaskRequest): Promise<Task> => {
-    const response = await api.patch<Task>(`/tasks/${taskId}`, data);
+    const response = await api.put<Task>(`/api/tasks/${taskId}`, data);
     return response.data;
   },
 
@@ -31,11 +33,11 @@ export const tasksService = {
     taskId: string,
     data: UpdateTaskStatusRequest
   ): Promise<Task> => {
-    const response = await api.patch<Task>(`/tasks/${taskId}/status`, data);
+    const response = await api.patch<Task>(`/api/tasks/${taskId}/status`, data);
     return response.data;
   },
 
   delete: async (taskId: string): Promise<void> => {
-    await api.delete(`/tasks/${taskId}`);
+    await api.delete(`/api/tasks/${taskId}`);
   },
 };

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneTask - Diagrama ER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 1rem;
+        }
+
+        .diagram {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 80px;
+            padding: 40px;
+        }
+
+        .entity {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            min-width: 280px;
+            overflow: hidden;
+        }
+
+        .entity-header {
+            padding: 16px 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .entity-header svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .entity.users .entity-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .entity.projects .entity-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .entity.tasks .entity-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .entity-body {
+            padding: 0;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+        }
+
+        .field:last-child {
+            border-bottom: none;
+        }
+
+        .field-icon {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        .field-icon.pk {
+            color: #eab308;
+        }
+
+        .field-icon.fk {
+            color: #8b5cf6;
+        }
+
+        .field-name {
+            flex: 1;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .field-type {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-family: 'Consolas', monospace;
+        }
+
+        .field.primary {
+            background: #fefce8;
+        }
+
+        .field.foreign {
+            background: #faf5ff;
+        }
+
+        /* Relationship lines using SVG */
+        .relationships {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .legend-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .legend-icon.pk {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .legend-icon.fk {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .relationships-section {
+            margin-top: 30px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .relationships-section h2 {
+            color: #1e293b;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .relationship-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .relationship {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .rel-entity {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .rel-entity.users {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .rel-entity.projects {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .rel-entity.tasks {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .rel-connector {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .rel-line {
+            width: 40px;
+            height: 2px;
+            background: #cbd5e1;
+        }
+
+        .cardinality {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        /* SVG Arrow Styles */
+        .arrow-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OneTask - Diagrama Entidade-Relacionamento</h1>
+        <p class="subtitle">Modelo de dados do sistema de gerenciamento de projetos e tarefas</p>
+
+        <div class="diagram">
+            <!-- Users Entity -->
+            <div class="entity users">
+                <div class="entity-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    users
+                </div>
+                <div class="entity-body">
+                    <div class="field primary">
+                        <span class="field-icon pk">PK</span>
+                        <span class="field-name">id</span>
+                        <span class="field-type">UUID</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">email</span>
+                        <span class="field-type">VARCHAR(255)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">password_hash</span>
+                        <span class="field-type">VARCHAR(255)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">role</span>
+                        <span class="field-type">ENUM</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">is_active</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">updated_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Entity -->
+            <div class="entity projects">
+                <div class="entity-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    projects
+                </div>
+                <div class="entity-body">
+                    <div class="field primary">
+                        <span class="field-icon pk">PK</span>
+                        <span class="field-name">id</span>
+                        <span class="field-type">UUID</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">description</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">client_name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">status</span>
+                        <span class="field-type">ENUM</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">start_date</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">due_date</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field foreign">
+                        <span class="field-icon fk">FK</span>
+                        <span class="field-name">created_by</span>
+                        <span class="field-type">UUID</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">updated_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Entity -->
+            <div class="entity tasks">
+                <div class="entity-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    tasks
+                </div>
+                <div class="entity-body">
+                    <div class="field primary">
+                        <span class="field-icon pk">PK</span>
+                        <span class="field-name">id</span>
+                        <span class="field-type">UUID</span>
+                    </div>
+                    <div class="field foreign">
+                        <span class="field-icon fk">FK</span>
+                        <span class="field-name">project_id</span>
+                        <span class="field-type">UUID</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">title</span>
+                        <span class="field-type">VARCHAR(200)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">description</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">status</span>
+                        <span class="field-type">ENUM</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">priority</span>
+                        <span class="field-type">ENUM</span>
+                    </div>
+                    <div class="field foreign">
+                        <span class="field-icon fk">FK</span>
+                        <span class="field-name">assignee_id</span>
+                        <span class="field-type">UUID</span>
+                    </div>
+                    <div class="field foreign">
+                        <span class="field-icon fk">FK</span>
+                        <span class="field-name">created_by</span>
+                        <span class="field-type">UUID</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">due_date</span>
+                        <span class="field-type">DATE</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">estimated_hours</span>
+                        <span class="field-type">DECIMAL(5,2)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">position</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-icon"></span>
+                        <span class="field-name">updated_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-icon pk">PK</div>
+                <span>Primary Key</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-icon fk">FK</div>
+                <span>Foreign Key</span>
+            </div>
+        </div>
+
+        <div class="relationships-section">
+            <h2>Relacionamentos</h2>
+            <div class="relationship-list">
+                <div class="relationship">
+                    <span class="rel-entity users">users</span>
+                    <div class="rel-connector">
+                        <span class="cardinality">1</span>
+                        <span class="rel-line"></span>
+                        <span class="cardinality">N</span>
+                    </div>
+                    <span class="rel-entity projects">projects</span>
+                    <span style="color: #64748b; font-size: 0.8rem; margin-left: 10px;">(created_by)</span>
+                </div>
+                <div class="relationship">
+                    <span class="rel-entity users">users</span>
+                    <div class="rel-connector">
+                        <span class="cardinality">1</span>
+                        <span class="rel-line"></span>
+                        <span class="cardinality">N</span>
+                    </div>
+                    <span class="rel-entity tasks">tasks</span>
+                    <span style="color: #64748b; font-size: 0.8rem; margin-left: 10px;">(assignee_id)</span>
+                </div>
+                <div class="relationship">
+                    <span class="rel-entity users">users</span>
+                    <div class="rel-connector">
+                        <span class="cardinality">1</span>
+                        <span class="rel-line"></span>
+                        <span class="cardinality">N</span>
+                    </div>
+                    <span class="rel-entity tasks">tasks</span>
+                    <span style="color: #64748b; font-size: 0.8rem; margin-left: 10px;">(created_by)</span>
+                </div>
+                <div class="relationship">
+                    <span class="rel-entity projects">projects</span>
+                    <div class="rel-connector">
+                        <span class="cardinality">1</span>
+                        <span class="rel-line"></span>
+                        <span class="cardinality">N</span>
+                    </div>
+                    <span class="rel-entity tasks">tasks</span>
+                    <span style="color: #64748b; font-size: 0.8rem; margin-left: 10px;">(project_id)</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="footer">OneTask - Trabalho de Conclusão de Curso - PUCRS</p>
+    </div>
+</body>
+</html>

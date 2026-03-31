@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FolderKanban, Settings, X } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Settings, X, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -19,6 +21,7 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <>
@@ -33,16 +36,23 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-60 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-auto",
+          "fixed inset-y-0 left-0 z-50 w-60 bg-slate-900 text-white transition-transform duration-200 ease-in-out",
+          "lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between px-6 border-b border-slate-800">
+          <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">OT</span>
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1">
+                <Image
+                  src="/logo.png"
+                  alt="OneTask"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
               </div>
               <span className="text-xl font-bold">OneTask</span>
             </Link>
@@ -81,6 +91,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               );
             })}
           </nav>
+
+          {/* Logout Button */}
+          <div className="px-3 py-2">
+            <button
+              onClick={logout}
+              className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <LogOut className="h-5 w-5" />
+              Sair
+            </button>
+          </div>
 
           {/* Footer */}
           <div className="px-6 py-4 border-t border-slate-800">

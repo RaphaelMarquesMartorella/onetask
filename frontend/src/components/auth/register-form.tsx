@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,7 +56,16 @@ export function RegisterForm() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <div className="flex items-center justify-center mb-4">
+        <div className="flex flex-col items-center justify-center mb-4 gap-2">
+          <div className="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center p-2">
+            <Image
+              src="/logo.png"
+              alt="OneTask"
+              width={48}
+              height={48}
+              className="object-contain"
+            />
+          </div>
           <h1 className="text-2xl font-bold text-slate-800">OneTask</h1>
         </div>
         <CardTitle className="text-xl text-center">Criar conta</CardTitle>
@@ -120,7 +130,7 @@ export function RegisterForm() {
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-4 mt-2">
           <Button type="submit" className="w-full" disabled={isRegistering}>
             {isRegistering ? (
               <>

@@ -1,21 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  closestCorners,
-} from "@dnd-kit/core";
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { Task, TaskStatus } from "@/types/task";
 import { KanbanColumn } from "./kanban-column";
-import { TaskCard } from "./task-card";
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -37,76 +24,40 @@ export function KanbanBoard({
   onAddTask,
   onTaskMove,
 }: KanbanBoardProps) {
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 5,
-      },
-    })
-  );
-
   const getTasksByStatus = (status: TaskStatus) => {
     return tasks
       .filter((task) => task.status === status)
       .sort((a, b) => a.position - b.position);
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const task = tasks.find((t) => t.id === event.active.id);
-    if (task) {
-      setActiveTask(task);
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    // Dropped outside a valid droppable
+    if (!destination) return;
+
+    // Dropped in the same position
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
     }
-  };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    // Handle drag over if needed for visual feedback
-  };
+    // Get the new status from the destination droppable ID
+    const newStatus = destination.droppableId as TaskStatus;
+    const taskId = draggableId;
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveTask(null);
-
-    if (!over) return;
-
-    const taskId = active.id as string;
-    const overId = over.id as string;
-
-    // Check if dropped on a column
-    const isColumn = columns.some((col) => col.id === overId);
-
-    if (isColumn) {
-      const newStatus = overId as TaskStatus;
-      const task = tasks.find((t) => t.id === taskId);
-
-      if (task && task.status !== newStatus) {
-        onTaskMove?.(taskId, newStatus);
-      }
-    } else {
-      // Dropped on another task - find that task's status
-      const overTask = tasks.find((t) => t.id === overId);
-      if (overTask) {
-        const task = tasks.find((t) => t.id === taskId);
-        if (task && task.status !== overTask.status) {
-          onTaskMove?.(taskId, overTask.status);
-        }
-      }
-    }
+    // Call the move handler
+    onTaskMove?.(taskId, newStatus);
   };
 
   const totalTasks = tasks.length;
 
   return (
-    <div className="space-y-3">
+    <div className="h-full flex flex-col">
       {/* Mobile scroll hint */}
-      <div className="flex items-center justify-between lg:hidden">
+      <div className="flex items-center justify-between mb-4 lg:hidden">
         <p className="text-xs text-slate-500">
           Deslize para ver todas as colunas
         </p>
@@ -115,14 +66,8 @@ export function KanbanBoard({
         </p>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory lg:snap-none">
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 flex-1">
           {columns.map((column) => (
             <KanbanColumn
               key={column.id}
@@ -134,15 +79,7 @@ export function KanbanBoard({
             />
           ))}
         </div>
-
-        <DragOverlay>
-          {activeTask && (
-            <div className="rotate-3">
-              <TaskCard task={activeTask} />
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+      </DragDropContext>
     </div>
   );
 }

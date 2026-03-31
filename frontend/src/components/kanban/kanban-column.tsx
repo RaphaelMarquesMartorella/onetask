@@ -1,10 +1,6 @@
 "use client";
 
-import { useDroppable } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { Droppable } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
 import { Task, TaskStatus } from "@/types/task";
 import { TaskCard } from "./task-card";
@@ -19,11 +15,27 @@ interface KanbanColumnProps {
   onAddTask?: () => void;
 }
 
-const columnConfig: Record<TaskStatus, { color: string; bgColor: string }> = {
-  todo: { color: "bg-slate-500", bgColor: "bg-slate-50" },
-  in_progress: { color: "bg-blue-500", bgColor: "bg-blue-50" },
-  in_review: { color: "bg-yellow-500", bgColor: "bg-yellow-50" },
-  done: { color: "bg-green-500", bgColor: "bg-green-50" },
+const columnConfig: Record<TaskStatus, { borderColor: string; bgHeader: string; bgContent: string }> = {
+  todo: {
+    borderColor: "border-l-slate-400",
+    bgHeader: "from-slate-50 to-white",
+    bgContent: "bg-slate-50/50",
+  },
+  in_progress: {
+    borderColor: "border-l-blue-500",
+    bgHeader: "from-blue-50 to-white",
+    bgContent: "bg-blue-50/30",
+  },
+  in_review: {
+    borderColor: "border-l-amber-500",
+    bgHeader: "from-amber-50 to-white",
+    bgContent: "bg-amber-50/30",
+  },
+  done: {
+    borderColor: "border-l-green-500",
+    bgHeader: "from-green-50 to-white",
+    bgContent: "bg-green-50/30",
+  },
 };
 
 export function KanbanColumn({
@@ -33,62 +45,102 @@ export function KanbanColumn({
   onTaskClick,
   onAddTask,
 }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id });
   const config = columnConfig[id];
 
+  const getTotalEstimatedHours = () => {
+    return tasks.reduce((acc, task) => acc + (Number(task.estimated_hours) || 0), 0);
+  };
+
+  const totalHours = Math.round(getTotalEstimatedHours());
+
   return (
-    <div className="flex flex-col w-72 min-w-72 shrink-0 snap-start">
+    <div className={cn(
+      "flex flex-col w-80 min-w-80 shrink-0 bg-white rounded-xl shadow-md border-l-4",
+      config.borderColor
+    )}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className={cn("w-3 h-3 rounded-full", config.color)} />
-          <h3 className="font-semibold text-slate-900">{title}</h3>
-          <span className="text-sm text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-            {tasks.length}
-          </span>
+      <div className={cn(
+        "p-4 border-b border-slate-100 bg-gradient-to-r rounded-t-xl",
+        config.bgHeader
+      )}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-slate-800">{title}</h3>
+            <span className="inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-200 text-slate-700">
+              {tasks.length}
+            </span>
+          </div>
+          {onAddTask && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-slate-200/50"
+              onClick={onAddTask}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
-        {id === "todo" && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={onAddTask}
+
+        {totalHours > 0 && (
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="font-medium">{totalHours}h</span>
+            <span>estimadas</span>
+          </div>
+        )}
+      </div>
+
+      {/* Droppable Area */}
+      <Droppable droppableId={id}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={cn(
+              "flex-1 p-3 overflow-y-auto transition-all duration-200 rounded-b-xl min-h-[250px]",
+              config.bgContent,
+              snapshot.isDraggingOver && "bg-blue-100/50 ring-2 ring-blue-300 ring-inset"
+            )}
           >
-            <Plus className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+            <div className="space-y-3">
+              {tasks.map((task, index) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  onClick={() => onTaskClick?.(task)}
+                />
+              ))}
+              {provided.placeholder}
+            </div>
 
-      {/* Tasks Container */}
-      <div
-        ref={setNodeRef}
-        className={cn(
-          "flex-1 rounded-lg p-2 min-h-[200px] transition-colors",
-          config.bgColor,
-          isOver && "ring-2 ring-blue-400 ring-offset-2"
-        )}
-      >
-        <SortableContext
-          items={tasks.map((t) => t.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-2">
-            {tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() => onTaskClick?.(task)}
-              />
-            ))}
-          </div>
-        </SortableContext>
+            {tasks.length === 0 && !snapshot.isDraggingOver && (
+              <div className="flex flex-col items-center justify-center h-40 text-center">
+                <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center mb-3">
+                  <Plus className="h-6 w-6 text-slate-400" />
+                </div>
+                <p className="text-sm text-slate-400 mb-2">Nenhuma tarefa</p>
+                {onAddTask && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onAddTask}
+                    className="text-xs"
+                  >
+                    Criar tarefa
+                  </Button>
+                )}
+              </div>
+            )}
 
-        {tasks.length === 0 && (
-          <div className="flex items-center justify-center h-24 text-sm text-slate-400">
-            Nenhuma tarefa
+            {snapshot.isDraggingOver && (
+              <div className="border-2 border-dashed border-blue-400 rounded-lg p-4 bg-blue-50 text-center text-sm text-blue-600 font-medium mt-3">
+                Solte aqui para mover
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </Droppable>
     </div>
   );
 }

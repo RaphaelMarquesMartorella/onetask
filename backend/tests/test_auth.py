@@ -77,3 +77,38 @@ async def test_get_current_user_unauthorized(client: AsyncClient):
     """Test getting current user without authentication."""
     response = await client.get("/api/auth/me")
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_refresh_token(client: AsyncClient, test_user):
+    """Test refreshing access token with valid refresh token."""
+    # First login to get tokens
+    login_response = await client.post(
+        "/api/auth/login",
+        json={
+            "email": "test@example.com",
+            "password": "testpassword",
+        },
+    )
+    assert login_response.status_code == 200
+    tokens = login_response.json()
+    refresh_token = tokens["refresh_token"]
+
+    # Use refresh token to get new access token
+    response = await client.post(
+        "/api/auth/refresh",
+        json={"refresh_token": refresh_token},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_invalid(client: AsyncClient):
+    """Test refreshing with invalid refresh token."""
+    response = await client.post(
+        "/api/auth/refresh",
+        json={"refresh_token": "invalid-token"},
+    )
+    assert response.status_code == 401

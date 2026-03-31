@@ -41,7 +41,8 @@ export function useAuth() {
     onSuccess: (data) => {
       setAuth(data.user, data.access_token, data.refresh_token);
       toast.success("Conta criada com sucesso!");
-      router.push("/");
+      router.replace("/");
+      router.refresh();
     },
     onError: (error: any) => {
       const message =

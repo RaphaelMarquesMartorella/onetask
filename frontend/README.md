@@ -15,31 +15,36 @@ Frontend da plataforma OneTask - Gerenciamento de Projetos e Tarefas.
 - **date-fns** - Manipulação de datas
 - **axios** - Cliente HTTP
 
-## Pré-requisitos
-
-- Node.js 18+
-- Backend rodando em http://localhost:8000
-
 ## Setup
 
-### 1. Instalar dependências
+### Via Docker (recomendado)
+
+Na raiz do projeto, execute:
 
 ```bash
-npm install
+docker-compose up -d
 ```
 
-### 2. Configurar variáveis de ambiente
+O frontend será iniciado automaticamente em http://localhost:3000
 
-```bash
-cp .env.example .env.local
-# Edite se necessário
-```
+### Desenvolvimento Local
 
-### 3. Iniciar servidor de desenvolvimento
+1. **Certifique-se de que o backend está rodando** em http://localhost:8000
 
-```bash
-npm run dev
-```
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure as variáveis de ambiente:**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+4. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
 
 O frontend estará disponível em http://localhost:3000
 

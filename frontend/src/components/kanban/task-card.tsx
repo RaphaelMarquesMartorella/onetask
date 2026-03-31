@@ -1,105 +1,108 @@
 "use client";
 
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { Draggable } from "@hello-pangea/dnd";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, GripVertical } from "lucide-react";
+import { Calendar, Clock, AlertCircle } from "lucide-react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task;
+  index: number;
   onClick?: () => void;
 }
 
 const priorityConfig = {
-  high: { label: "Alta", className: "bg-red-100 text-red-700 border-red-200" },
-  medium: { label: "Média", className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-  low: { label: "Baixa", className: "bg-green-100 text-green-700 border-green-200" },
+  high: {
+    label: "Alta",
+    className: "bg-red-500 text-white border-red-600",
+    icon: true,
+  },
+  medium: {
+    label: "Média",
+    className: "bg-amber-100 text-amber-800 border-amber-300",
+    icon: false,
+  },
+  low: {
+    label: "Baixa",
+    className: "bg-green-100 text-green-800 border-green-300",
+    icon: false,
+  },
 };
 
-export function TaskCard({ task, onClick }: TaskCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
+export function TaskCard({ task, index, onClick }: TaskCardProps) {
   const priority = priorityConfig[task.priority];
   const isOverdue =
     task.due_date && new Date(task.due_date) < new Date() && task.status !== "done";
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "group rounded-lg border bg-white p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow",
-        isDragging && "opacity-50 shadow-lg",
-        isOverdue && "border-red-300"
-      )}
-      onClick={onClick}
-    >
-      <div className="flex items-start gap-2">
-        <button
-          {...attributes}
-          {...listeners}
-          className="mt-0.5 p-1 -ml-1 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
-          onClick={(e) => e.stopPropagation()}
+    <Draggable draggableId={task.id} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          className={cn(
+            "relative bg-white p-4 rounded-lg border-2 cursor-grab active:cursor-grabbing group transition-all duration-200",
+            snapshot.isDragging
+              ? "shadow-2xl border-blue-500 opacity-95 rotate-1 scale-105"
+              : "shadow-sm hover:shadow-lg border-slate-200 hover:border-blue-300",
+            isOverdue && !snapshot.isDragging && "border-red-300"
+          )}
+          onClick={onClick}
         >
-          <GripVertical className="h-4 w-4 text-slate-400" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-slate-900 text-sm line-clamp-2">
-            {task.title}
-          </h4>
+          {/* Card Header */}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h4 className="font-semibold text-slate-800 text-sm line-clamp-2 flex-1 group-hover:text-blue-600 transition-colors">
+              {task.title}
+            </h4>
+            <span
+              className={cn(
+                "flex-shrink-0 px-2 py-0.5 text-xs font-semibold rounded border flex items-center gap-1",
+                priority.className
+              )}
+            >
+              {priority.icon && <AlertCircle className="w-3 h-3" />}
+              {priority.label}
+            </span>
+          </div>
 
+          {/* Card Description */}
           {task.description && (
-            <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+            <p className="text-xs text-slate-500 mb-3 line-clamp-2">
               {task.description}
             </p>
           )}
 
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border",
-                priority.className
+          {/* Card Footer */}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-3 text-xs">
+              {task.due_date && (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1",
+                    isOverdue ? "text-red-600 font-medium" : "text-slate-500"
+                  )}
+                >
+                  <Calendar className="h-3.5 w-3.5" />
+                  {format(new Date(task.due_date), "dd MMM", { locale: ptBR })}
+                </span>
               )}
-            >
-              {priority.label}
-            </span>
 
-            {task.due_date && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1 text-xs",
-                  isOverdue ? "text-red-600" : "text-slate-500"
-                )}
-              >
-                <Calendar className="h-3 w-3" />
-                {format(new Date(task.due_date), "dd MMM", { locale: ptBR })}
-              </span>
-            )}
-
-            {task.estimated_hours && (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                <Clock className="h-3 w-3" />
-                {task.estimated_hours}h
-              </span>
-            )}
+              {task.estimated_hours && (
+                <span className="inline-flex items-center gap-1 text-slate-500">
+                  <Clock className="h-3.5 w-3.5" />
+                  {Math.round(Number(task.estimated_hours))}h
+                </span>
+              )}
+            </div>
           </div>
+
+          {/* Hover overlay */}
+          <div className="absolute inset-0 rounded-lg bg-blue-500 opacity-0 group-hover:opacity-[0.03] transition-opacity pointer-events-none" />
         </div>
-      </div>
-    </div>
+      )}
+    </Draggable>
   );
 }

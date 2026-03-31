@@ -10,18 +10,9 @@ const authRoutes = ["/login", "/register"];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check for auth token in cookies or check auth-storage
-  const authStorage = request.cookies.get("auth-storage");
-  let isAuthenticated = false;
-
-  if (authStorage) {
-    try {
-      const parsed = JSON.parse(authStorage.value);
-      isAuthenticated = parsed.state?.isAuthenticated || false;
-    } catch {
-      isAuthenticated = false;
-    }
-  }
+  // Check for auth token in cookies
+  const accessToken = request.cookies.get("access_token");
+  const isAuthenticated = request.cookies.get("is_authenticated")?.value === "true" && !!accessToken;
 
   // Check if trying to access protected route without auth
   const isProtectedRoute = protectedRoutes.some(

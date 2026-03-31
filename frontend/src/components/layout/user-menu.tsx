@@ -1,19 +1,16 @@
 "use client";
 
-import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 
 export function UserMenu() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const initials = user?.name
     ?.split(" ")
@@ -46,11 +43,6 @@ export function UserMenu() {
             </span>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer">
-          <LogOut className="mr-2 h-4 w-4" />
-          Sair
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

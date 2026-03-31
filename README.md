@@ -1,5 +1,13 @@
 # OneTask
 
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 Plataforma de gerenciamento de projetos e tarefas com interface Kanban.
 
 **Autor:** Raphael Marques Martorella
@@ -69,163 +77,150 @@ OneTask é uma aplicação web completa para gerenciamento de projetos e tarefas
 ## Estrutura do Projeto
 
 ```
-pucrs/
+onetask/
+├── docker-compose.yml        # Orquestração de todos os serviços
+├── diagrama.html             # Diagrama ER do banco de dados
+├── README.md
+│
 ├── backend/
+│   ├── Dockerfile            # Build do backend
+│   ├── entrypoint.sh         # Script de inicialização (migrations)
 │   ├── app/
-│   │   ├── models/          # Modelos SQLAlchemy
-│   │   │   ├── user.py
-│   │   │   ├── project.py
-│   │   │   └── task.py
-│   │   ├── routers/         # Endpoints da API
-│   │   │   ├── auth.py
-│   │   │   ├── projects.py
-│   │   │   ├── tasks.py
-│   │   │   └── metrics.py
-│   │   ├── schemas/         # Schemas Pydantic
-│   │   │   ├── user.py
-│   │   │   ├── project.py
-│   │   │   ├── task.py
-│   │   │   └── metrics.py
-│   │   ├── services/        # Lógica de negócio
-│   │   │   ├── auth.py
-│   │   │   ├── project.py
-│   │   │   ├── task.py
-│   │   │   └── metrics.py
-│   │   ├── repositories/    # Acesso ao banco de dados
-│   │   ├── utils/           # Utilitários e dependências
-│   │   ├── config.py        # Configurações
-│   │   ├── database.py      # Conexão com banco
-│   │   └── main.py          # Aplicação FastAPI
-│   ├── alembic/             # Migrations
-│   ├── tests/               # Testes automatizados
+│   │   ├── models/           # Modelos SQLAlchemy
+│   │   ├── routers/          # Endpoints da API
+│   │   ├── schemas/          # Schemas Pydantic
+│   │   ├── services/         # Lógica de negócio
+│   │   ├── repositories/     # Acesso ao banco de dados
+│   │   ├── utils/            # Utilitários e dependências
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   └── main.py
+│   ├── alembic/              # Migrations
+│   ├── tests/                # Testes automatizados
+│   ├── init.sql              # Dados iniciais (seed)
 │   ├── requirements.txt
-│   ├── docker-compose.yml
 │   └── .env.example
 │
 └── frontend/
+    ├── Dockerfile            # Build do frontend
     └── src/
         ├── app/
-        │   ├── (auth)/           # Rotas públicas
-        │   │   ├── login/
-        │   │   └── register/
-        │   └── (dashboard)/      # Rotas protegidas
-        │       ├── page.tsx      # Dashboard
-        │       ├── projects/
-        │       │   ├── page.tsx  # Listagem
-        │       │   └── [id]/     # Detalhe + Kanban
-        │       └── settings/
+        │   ├── (auth)/       # Rotas públicas (login, register)
+        │   └── (dashboard)/  # Rotas protegidas
         ├── components/
-        │   ├── ui/              # Componentes base (shadcn)
-        │   ├── auth/            # Formulários de autenticação
-        │   ├── layout/          # Sidebar, Header, UserMenu
-        │   ├── dashboard/       # Cards de métricas
-        │   ├── projects/        # Cards e formulários de projeto
-        │   ├── kanban/          # Board, Column, TaskCard
-        │   └── tasks/           # Modal de detalhes da tarefa
-        ├── hooks/               # Custom hooks (useAuth, useProjects, useTasks, useMetrics)
-        ├── services/            # Chamadas à API
-        ├── stores/              # Zustand stores
-        ├── types/               # Tipos TypeScript
-        └── lib/                 # Utilitários (api client, utils)
+        │   ├── ui/           # Componentes base (shadcn)
+        │   ├── auth/         # Formulários de autenticação
+        │   ├── layout/       # Sidebar, Header, UserMenu
+        │   ├── dashboard/    # Cards de métricas
+        │   ├── projects/     # Cards e formulários de projeto
+        │   ├── kanban/       # Board, Column, TaskCard
+        │   └── tasks/        # Modal de detalhes da tarefa
+        ├── hooks/            # Custom hooks
+        ├── services/         # Chamadas à API
+        ├── stores/           # Zustand stores
+        ├── types/            # Tipos TypeScript
+        └── lib/              # Utilitários
 ```
 
 ---
 
 ## Pré-requisitos
 
-- **Node.js** 18+ e npm
-- **Python** 3.11+
-- **Docker** e Docker Compose (para PostgreSQL)
+- **Docker** e Docker Compose
 
 ---
 
-## Instalação e Configuração
+## Quick Start (Docker)
+
+Execute toda a aplicação com um único comando:
+
+```bash
+docker-compose up -d
+```
+
+Isso irá iniciar:
+- **PostgreSQL** (porta 5433)
+- **Backend API** (porta 8000)
+- **Frontend** (porta 3000)
+
+### URLs
+
+| Serviço | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| Swagger Docs | http://localhost:8000/docs |
+| ReDoc | http://localhost:8000/redoc |
+
+### Credenciais Padrão
+
+O sistema já vem com dados de exemplo pré-populados:
+
+| Campo | Valor |
+|-------|-------|
+| Email | `admin@onetask.com` |
+| Senha | `admin123` |
+
+Os dados incluem 3 projetos de exemplo com tarefas distribuídas em todas as colunas do Kanban.
+
+### Comandos Docker
+
+```bash
+# Iniciar a aplicação
+docker-compose up -d
+
+# Parar a aplicação
+docker-compose down
+
+# Rebuild após alterações no código
+docker-compose up -d --build
+
+# Ver logs
+docker-compose logs -f
+
+# Ver logs de um serviço específico
+docker-compose logs -f backend
+docker-compose logs -f frontend
+```
+
+---
+
+## Desenvolvimento Local (sem Docker)
+
+### Pré-requisitos adicionais
+- **Node.js** 18+ e npm
+- **Python** 3.11+
 
 ### Backend
 
-1. **Navegue até o diretório do backend:**
+1. **Inicie o banco de dados (ainda usa Docker):**
+   ```bash
+   docker-compose up -d db
+   ```
+
+2. **Configure o ambiente:**
    ```bash
    cd backend
-   ```
-
-2. **Crie e ative o ambiente virtual:**
-   ```bash
    python3 -m venv venv
    source venv/bin/activate  # Linux/macOS
-   # ou
-   venv\Scripts\activate     # Windows
-   ```
-
-3. **Instale as dependências:**
-   ```bash
    pip install -r requirements.txt
-   ```
-
-4. **Configure as variáveis de ambiente:**
-   ```bash
    cp .env.example .env
    ```
 
-   O arquivo `.env` contém:
-   ```env
-   DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/onetask
-   SECRET_KEY=sua-chave-secreta-aqui-mudar-em-producao
-   ALGORITHM=HS256
-   ACCESS_TOKEN_EXPIRE_MINUTES=30
-   REFRESH_TOKEN_EXPIRE_DAYS=7
-   ```
-
-5. **Inicie o banco de dados PostgreSQL:**
-   ```bash
-   docker-compose up -d
-   ```
-
-6. **Execute as migrations:**
+3. **Execute as migrations e inicie:**
    ```bash
    alembic upgrade head
+   uvicorn app.main:app --reload
    ```
-
-### Frontend
-
-1. **Navegue até o diretório do frontend:**
-   ```bash
-   cd frontend
-   ```
-
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure as variáveis de ambiente:**
-
-   Crie o arquivo `.env.local`:
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:8000
-   ```
-
----
-
-## Executando o Projeto
-
-### Backend
-
-```bash
-cd backend
-source venv/bin/activate
-uvicorn app.main:app --reload
-```
 
 O servidor estará disponível em: `http://localhost:8000`
-
-Documentação da API:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
 
 ### Frontend
 
 ```bash
 cd frontend
+npm install
+cp .env.example .env.local
 npm run dev
 ```
 

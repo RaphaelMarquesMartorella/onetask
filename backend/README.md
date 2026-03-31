@@ -23,45 +23,38 @@ Backend API para o OneTask - Plataforma de Gerenciamento de Projetos e Tarefas.
 
 ## Setup
 
-### 1. Criar ambiente virtual
+### Via Docker (recomendado)
 
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# ou
-venv\Scripts\activate  # Windows
-```
-
-### 2. Instalar dependências
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Configurar variáveis de ambiente
-
-```bash
-cp .env.example .env
-# Edite o arquivo .env com suas configurações
-```
-
-### 4. Subir o banco de dados
+Na raiz do projeto, execute:
 
 ```bash
 docker-compose up -d
 ```
 
-### 5. Executar migrations
+O backend será iniciado automaticamente com as migrations aplicadas.
 
-```bash
-alembic upgrade head
-```
+### Desenvolvimento Local
 
-### 6. Iniciar o servidor
+1. **Inicie o banco de dados:**
+   ```bash
+   cd ..  # raiz do projeto
+   docker-compose up -d db
+   ```
 
-```bash
-uvicorn app.main:app --reload
-```
+2. **Configure o ambiente:**
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # Linux/macOS
+   pip install -r requirements.txt
+   cp .env.example .env
+   ```
+
+3. **Execute as migrations e inicie:**
+   ```bash
+   alembic upgrade head
+   uvicorn app.main:app --reload
+   ```
 
 O servidor estará disponível em http://localhost:8000
 
@@ -168,8 +161,9 @@ backend/
 ├── .env.example          # Exemplo de variáveis de ambiente
 ├── .gitignore            # Arquivos ignorados pelo Git
 ├── alembic.ini           # Configuração do Alembic
-├── docker-compose.yml    # Configuração do PostgreSQL
 ├── Dockerfile            # Build da aplicação
+├── entrypoint.sh         # Script de inicialização (migrations + seed)
+├── init.sql              # Dados iniciais (seed)
 ├── requirements.txt      # Dependências Python
 └── README.md             # Esta documentação
 ```

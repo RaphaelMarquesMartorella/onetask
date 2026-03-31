@@ -15,26 +15,26 @@ interface ListProjectsParams {
 
 export const projectsService = {
   list: async (params?: ListProjectsParams): Promise<ProjectListResponse> => {
-    const response = await api.get<ProjectListResponse>("/projects", { params });
+    const response = await api.get<ProjectListResponse>("/api/projects", { params });
     return response.data;
   },
 
   getById: async (id: string): Promise<ProjectDetail> => {
-    const response = await api.get<ProjectDetail>(`/projects/${id}`);
+    const response = await api.get<ProjectDetail>(`/api/projects/${id}`);
     return response.data;
   },
 
   create: async (data: CreateProjectRequest): Promise<Project> => {
-    const response = await api.post<Project>("/projects", data);
+    const response = await api.post<Project>("/api/projects", data);
     return response.data;
   },
 
   update: async (id: string, data: UpdateProjectRequest): Promise<Project> => {
-    const response = await api.patch<Project>(`/projects/${id}`, data);
+    const response = await api.put<Project>(`/api/projects/${id}`, data);
     return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/projects/${id}`);
+    await api.delete(`/api/projects/${id}`);
   },
 };
